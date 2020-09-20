@@ -33,7 +33,7 @@ dat <- data[m,]
 ```
 
 Calculation of the total number of steps taken per day:
-```{r}
+```{r message = FALSE}
 da <- group_by(dat, date)
 Q1 <- as.data.frame(summarize(da, totsteps = sum(steps)))
 ```
@@ -45,8 +45,8 @@ hist(Q1$totsteps, xlab ="total steps", main = "Plot 1")
 
 Mean and median of the total number of steps taken per day:
 ```{r message = FALSE, }
-Q1.2 <- as.data.frame(summarize(da, totalsteps = sum(steps), mean = mean(steps), median = median(steps)))
-Q1.2
+mean(Q1$totsteps)
+median(Q1$totsteps)
 ```
 
 ## What is the average daily activity pattern?
@@ -106,20 +106,20 @@ hist(sum3$totsteps, xlab = "total number of steps", main = "Plot 3")
 We calculate the mean and median of the total number of steps taken per day:
 
 ```{r message = FALSE, }
-Q3.2 <- as.data.frame(summarize(gr, totalsteps = sum(steps),  mean = mean(steps), median = median(steps)))
-Q3.2
+mean(sum3$totsteps)
+median(sum3$totsteps)
 ```
 
 
 We can see that the values do not almost differ from the first part of the assigment where we removed the missing values.
 
-While mean.x, median.x and totalsteps.x correspond to the dataset **Q3.2** whereas, mean.y, median.y and totalsteps.y correspond to the dataset **Q1.2** where the missing values where removed.
-
 ```{r}
-last <- merge(Q3.2, Q1.2, by = "date", all = TRUE)
-last
+Q <- c(1, 3)
+mean <- c(mean(Q1$totsteps), mean(sum3$totsteps))
+median <- c(median(Q1$totsteps), median(sum3$totsteps))
+comparation <- as.data.frame(cbind(Q, mean, median))
+comparation
 ```
-
 
 ## Are there differences in activity patterns between weekdays and weekends?
 
