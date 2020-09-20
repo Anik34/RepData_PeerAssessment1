@@ -8,18 +8,137 @@ output:
 
 ## Loading and preprocessing the data
 
+We will use dplyr package for this analysis
 
+```{r message = FALSE}
+library(dplyr)
+```
+
+First we load the data
+
+```{r}
+data <- read.csv("C:/Users/User/Desktop/Data Science/Reproducible Research/Project Week 2/activity.csv")
+data$date <- as.Date(data$date , format = "%Y-%m-%d")
+```
 
 ## What is mean total number of steps taken per day?
 
+We will ignore the missing values in the dataset.
 
+```{r}
+m <- complete.cases(data)
+dat <- data[m,]
+```
+
+Calculation of the total number of steps taken per day:
+```{r}
+da <- group_by(dat, date)
+Q1 <- as.data.frame(summarize(da, totsteps = sum(steps)))
+```
+
+Histogram of the total number of steps taken each day
+```{r}
+hist(Q1$totsteps, xlab ="total steps", main = "Plot 1")
+```
+
+Mean and median of the total number of steps taken per day:
+```{r message = FALSE, }
+Q1.2 <- as.data.frame(summarize(da, totalsteps = sum(steps), mean = mean(steps), median = median(steps)))
+Q1.2
+```
 
 ## What is the average daily activity pattern?
 
+We will ignore the missing values in the dataset.
+
+```{r}
+m <- complete.cases(data)
+dat <- data[m,]
+```
+
+Make a plot of the 5 minute interval vs the average number of steps taken, averaged across all days.
+
+```{r message = FALSE}
+da2 <- group_by(dat, interval)
+Q2 <- as.data.frame(summarize(da2, totsteps = sum(steps), mean = mean(steps), interval = interval))
+with(Q2, plot(interval, mean, type = "l", main = "Plot 2", ylab = "average number of steps taken"))
+```
+
+The 5 minute interval on average across all days that contains the maximum number of steps is calculated with:
+
+```{r}
+print(Q2[which.max(Q2$mean), "interval"])
+```
 
 
 ## Imputing missing values
 
+The total number of missing values in the dataset is calculated with
+
+```{r}
+sum(is.na(data))
+```
+
+We create a new dataset called **copy_data** that is a copy of the initial data set.
+
+```{r}
+copy_data <- data.frame(data)
+```
+
+We fill in all the missing values of the dataset **copy_data**, with the mean for the 5 minute interval.
+
+```{r message = FALSE}
+pls <- group_by(copy_data, interval)
+Q3 <- as.data.frame(summarize(pls, mean = mean(steps, na.rm = TRUE)))
+copy_data$steps <- ifelse(is.na(copy_data$steps) == TRUE, Q3$mean[Q3$interval %in% copy_data$interval], copy_data$steps) 
+```
+
+We rearrange the data to obtain the total number of steps taken each day, and use it to make a histogram:
+
+```{r message = FALSE}
+gr <- group_by(copy_data, date)
+sum3 <- as.data.frame(summarize(gr, totsteps = sum(steps)))
+hist(sum3$totsteps, xlab = "total number of steps", main = "Plot 3")
+```
+
+We calculate the mean and median of the total number of steps taken per day:
+
+```{r message = FALSE, }
+Q3.2 <- as.data.frame(summarize(gr, totalsteps = sum(steps),  mean = mean(steps), median = median(steps)))
+Q3.2
+```
+
+
+We can see that the values do not almost differ from the first part of the assigment where we removed the missing values.
+
+While mean.x, median.x and totalsteps.x correspond to the dataset **Q3.2** whereas, mean.y, median.y and totalsteps.y correspond to the dataset **Q1.2** where the missing values where removed.
+
+```{r}
+last <- merge(Q3.2, Q1.2, by = "date", all = TRUE)
+last
+```
 
 
 ## Are there differences in activity patterns between weekdays and weekends?
+
+We will use lattice package for this analysis
+
+```{r message = FALSE}
+library(lattice)
+```
+
+We create a new factor variable in the dataset with two leveles; weekday and weekend.
+
+```{r}
+q4 <- mutate(copy_data, day = weekdays(copy_data$date))
+q4$day <- ifelse(q4$day %in% c("sábado", "domingo"), "weekend", "weekday")
+head(q4)
+```
+
+We rearrange the dataset **copy_data**, to make a plot of the 5 minute interval vs the average number of steps taken, averaged across all weekday days or weekend days.
+
+```{r message = FALSE}
+gr4 <- group_by(q4, day, interval)
+Q4.2 <- as.data.frame(summarize(gr4, mean = mean(steps)))
+xyplot(mean ~ interval | day, data = Q4.2 , layout = c(1, 2), type = "l", main = "Plot 4", ylab = "average number of steps taken")
+```
